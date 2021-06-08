@@ -34,7 +34,7 @@ DATA_SOURCEi = {
 }
 
 meta = {
-    "queries": {},
+    "queries": [],
     "visualization": {},
     "dashboards": {}
 }
@@ -80,8 +80,11 @@ def extract_visualization(viz, qdata, query_id):
     v = viz['visualization']
     data_arr = []
 
+    order = viz['options']['position']['row'] * 10 + viz['options']['position']['col']
+
+
     if v['type'] == "TABLE":
-	   meta['queries'][query_id] = qdata
+	   meta['queries'].append((order, qdata))
 	   return
 
     par_arr = []
@@ -93,6 +96,9 @@ def extract_visualization(viz, qdata, query_id):
     v['options']['visualization_id'] = v['name'].replace(" ", "_")+"{}".format(v['id'])
 
     local_data = qdata
+# Figure out how to get the order of the widgets in
+#   if 'position' in viz['options']:
+    local_data['options'] = viz['options']
 
     data = {
                 "name": v['name'],  # .lower().replace(" ", "_"),
@@ -103,10 +109,6 @@ def extract_visualization(viz, qdata, query_id):
     if 'width' in viz:
 	    local_data['width'] = viz['width']
 	    data['widget_width'] = "half"
-
-# Figure out how to get the order of the widgets in
-    if 'position' in viz['options']:
-        local_data['options'] = viz['options']
 
     if 'parameterMappings' in viz['options']:
 
@@ -135,9 +137,8 @@ def extract_visualization(viz, qdata, query_id):
 
 
     data_arr.append(data)
-    meta['queries'][v['id']] = {}
-    meta['queries'][v['id']] = local_data
-    meta['queries'][v['id']]['visualization'] = data_arr
+    local_data['visualization'] = data_arr
+    meta['queries'].append((order, local_data))
 
      #sql.close
 
@@ -145,18 +146,14 @@ def extract_visualization(viz, qdata, query_id):
 def import_dashboard(dashname, api_key):
 
 
-    print "Import dashboard: ", dashname, meta['dashboards']
     try:
        path = "/api/dashboards/{}".format(meta['dashboards'])
-       print "Dash path", path
        d = api_request(path , api_key)
 
     except Exception as ex:
        print "Cannot connect, or no such dashboard: ", meta['dashboards']
        sys.exit(1)
 
-
-    print "got dashboard ", json.dumps(d, indent=3)
     data = {'name': d['name']}
 
     for widget in d['widgets']:
@@ -182,14 +179,14 @@ def export_dashboard(dirpath):
 
     with open(dirpath+'/'+dirpath+'.json', "w") as dash:
 	dash.write("[\n")
-	for query in meta['queries']:
+	for query in sorted(meta['queries'], key=lambda _ordered_query_tuple: _ordered_query_tuple[0]):
 
-	    if(first_item):
+	    if first_item:
 		first_item = False
-		json.dump(meta['queries'][query], dash, indent=3, sort_keys=True)
+		json.dump(query[1], dash, indent=3, sort_keys=True)
  	    else:
 		dash.write(",\n ")
-		json.dump(meta['queries'][query], dash, indent=3, sort_keys=True)
+		json.dump(query[1], dash, indent=3, sort_keys=True)
 	dash.write("]\n")
 
 

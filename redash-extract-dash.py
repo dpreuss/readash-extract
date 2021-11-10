@@ -122,10 +122,11 @@ def extract_visualization(viz, qdata, query_id):
             }
             if pardata['name'] == "volume":
                 pardata['type'] = "text"
-            if param['type'] == "widget-level":
-                pardata['global'] = False
-            else:
-                pardata['global'] = True
+            #if param['type'] == "widget-level":
+            pardata['global'] = False
+# Force it widget level
+            #else:
+            #    pardata['global'] = True
 
             par_arr.append(pardata)
 

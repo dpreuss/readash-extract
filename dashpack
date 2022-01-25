@@ -10,4 +10,4 @@ mv */*.json .
 tar -cvf ../$1.tar *
 cd ..
 rm -r packdir
-echo $2 Dashboard prepared as $1.tar
+echo Dashboard prepared as $1.tar

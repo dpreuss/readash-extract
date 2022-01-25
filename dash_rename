@@ -1,0 +1,24 @@
+#!/bin/bash 
+#
+# Rename a dashboard - mv the directory, rename the .json and sed the contents of the .json
+DATAFILE="$1".tar
+NEWDIR="$2".tar
+
+cd dashboards
+mkdir packdir; cd packdir
+
+  if [[ -e ../"$DATAFILE" ]]
+   then 
+	tar -xvf ../$DATAFILE
+	OLDDASH=`ls -d */ | sed -e 's;/;;'`
+	mv $OLDDASH $2
+	mv $OLDDASH.json $2.json
+	sed -i "s/$OLDDASH/$2/" $2.json
+	tar -cvf ../$NEWDIR $2.json $2
+	rm $2/* $2.json
+	rmdir $2
+ echo "Done renamed $1 to $2 dashboard"
+cd ..
+rmdir packdir
+  fi
+
